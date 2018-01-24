@@ -1,42 +1,69 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class PaletteSwaper : MonoBehaviour
 {
-    public Color[] colorPallet;
-    private Material material;
-    private SpriteRenderer spriteRenderer;
-    public Shader shader;
+    private static Dictionary<string,Material> materials;
+    private static string shaderName = "Custome/PaletteSwap";
 
-    [ExecuteInEditMode]
-    private void Start()
-    {
-        if (shader != null)
-            material = new Material(shader);
-    }
+    private Material material;
+    public Texture2D texture;
+    public ColorPaletteSet colorPaletteSet;
+    public int colorPaletteIndex;
 
     //Used For Individual objects
-    [ExecuteInEditMode]
     private void Update()
     {
-        if (shader == null)
+        if (colorPaletteSet == null || texture == null)
             return;
 
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.material = material;
-            material.SetColorArray("_Out", colorPallet);
-        }
+        colorPaletteIndex = Mathf.Clamp(colorPaletteIndex,0,colorPaletteSet.colorPallets.Count - 1);
+        material =  GetMaterial(texture,colorPaletteSet,colorPaletteIndex);
+
+        var colors = colorPaletteSet.colorPallets[colorPaletteIndex].colors;
+        PaletteSwaper.PalletSwapOnMaterial(colors, material, texture);
+        PaletteSwaper.PalletSwapOnSpriteRenderer(colors, material, texture,GetComponent<SpriteRenderer>());
     }
 
-    //Used On Camera object to effect all objects
-    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    void OnApplicationQuit()
     {
-        if (shader == null)
+        material = null;
+        materials.Clear();
+    }
+
+    //Used For Materials
+    public static void PalletSwapOnMaterial(Color[] pallet,Material material, Texture2D texture)
+    {
+        if (pallet == null || pallet.Length == 0 || texture == null)
             return;
-            
-        material.SetColorArray("_Out", colorPallet);
-        Graphics.Blit(source, destination, material);
+
+        material.SetTexture("_MainTex", texture);
+        material.SetColorArray("_Out", pallet);
+    }
+
+    //Used For Sprite Renderers
+    public static void PalletSwapOnSpriteRenderer(Color[] pallet,Material material, Texture2D texture, SpriteRenderer spriteRenderer)
+    {
+         if (pallet == null || pallet.Length == 0 || texture == null && spriteRenderer == null)
+            return;
+
+        material.SetTexture("_MainTex", texture);
+        material.SetColorArray("_Out", pallet);
+        spriteRenderer.material = material;
+    }
+
+    public static Material GetMaterial(Texture2D texture,ColorPaletteSet colorPaletteSet,int i)
+    {
+        if (materials == null)
+            materials = new Dictionary<string, Material>();
+
+        string key = texture.name + colorPaletteSet.name + i.ToString();
+        if (!materials.ContainsKey(key))
+        {
+            Material material = new Material(Shader.Find(shaderName));
+            materials.Add(key,material);
+        }
+        return materials[key]; 
     }
 }
