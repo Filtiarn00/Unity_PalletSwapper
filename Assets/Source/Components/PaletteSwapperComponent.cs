@@ -7,7 +7,6 @@ using Unity.Collections;
 public struct PaletteSwapper: ISharedComponentData
 {
     public Sprite sprite;
-    public Material material;
     public ColorPaletteSet colorPaletteSet;
     private SpriteRenderer spriteRenderer;
 }

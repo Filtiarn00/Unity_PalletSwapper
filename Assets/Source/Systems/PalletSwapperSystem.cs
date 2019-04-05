@@ -31,7 +31,7 @@ public class PaletteSwapperSystem : ComponentSystem
             var palletSwapper = data.PalletSwapper[i];
 
             PaletteSwapperUtilities.UpdatePalette(palletSwapper, spriteRenderer, palletSwapperDirty.index);
-            //PostUpdateCommands.RemoveComponent(entity,typeof(PaletteSwapperDirty));
+            PostUpdateCommands.RemoveComponent(entity,typeof(PaletteSwapperDirty));
         }
     }
 }
